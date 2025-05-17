@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import json
+import os
 
 app = FastAPI()
 
@@ -12,14 +13,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load students data on startup safely
+# Load data from q-vercel-python.json on startup
 data = {}
 
 try:
     with open("q-vercel-python.json", "r") as f:
-        students_list = json.load(f)
-        # Convert list of dicts to dict for fast lookup
-        data = {entry["name"]: entry["marks"] for entry in students_list}
+        raw_data = json.load(f)
+    # Convert list of dicts to dictionary {name: marks}
+    data = {item['name']: item['marks'] for item in raw_data}
 except FileNotFoundError:
     print("Warning: q-vercel-python.json file not found. Starting with empty data.")
 except json.JSONDecodeError as e:
@@ -27,8 +28,5 @@ except json.JSONDecodeError as e:
 
 @app.get("/api")
 def get_marks(name: list[str] = []):
-    if not data:
-        raise HTTPException(status_code=404, detail="Students data not available")
-
     result = [data.get(n) for n in name]
     return {"marks": result}
