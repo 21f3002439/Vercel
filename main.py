@@ -28,5 +28,12 @@ except json.JSONDecodeError as e:
 
 @app.get("/api")
 def get_marks(name: list[str] = []):
-    result = [data.get(n) for n in name]
-    return {"marks": result}
+    result = []
+    not_found = []
+    for n in name:
+        marks = data.get(n)
+        if marks is None:
+            not_found.append(n)
+        else:
+            result.append(marks)
+    return {"requested_names": name, "marks": result, "not_found": not_found}
