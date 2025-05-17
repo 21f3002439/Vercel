@@ -19,12 +19,13 @@ data = {}
 try:
     with open("q-vercel-python.json", "r") as f:
         raw_data = json.load(f)
-    # Convert list of dicts to dictionary {name: marks}
     data = {item['name']: item['marks'] for item in raw_data}
-except FileNotFoundError:
-    print("Warning: q-vercel-python.json file not found. Starting with empty data.")
-except json.JSONDecodeError as e:
-    print(f"Warning: Error decoding JSON: {e}. Starting with empty data.")
+    print(f"Loaded {len(data)} records from JSON.")
+except Exception as e:
+    print(f"Error loading JSON: {e}")
+
+
+
 
 @app.get("/api")
 def get_marks(name: list[str] = []):
@@ -36,4 +37,17 @@ def get_marks(name: list[str] = []):
             not_found.append(n)
         else:
             result.append(marks)
-    return {"requested_names": name, "marks": result, "not_found": not_found}
+    return {
+        "requested_names": name,
+        "marks": result,
+        "not_found": not_found,
+        "data_loaded_count": len(data)
+    }
+
+
+import os
+
+@app.get("/debug-file")
+def debug_file():
+    exists = os.path.isfile("q-vercel-python.json")
+    return {"q-vercel-python.json exists": exists}
